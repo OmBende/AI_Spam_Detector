@@ -104,6 +104,85 @@ def clean_text(text):
 
     return text
 
+# ==========================================
+# Message Analysis
+# ==========================================
+
+def analyze_message(text):
+
+    words = text.split()
+
+    url_pattern = r"http\S+|www\S+|https\S+"
+
+    urls = re.findall(
+        url_pattern,
+        text,
+        flags=re.IGNORECASE
+    )
+
+    numbers = re.findall(
+        r"\d+",
+        text
+    )
+
+    capital_letters = sum(
+        1 for char in text
+        if char.isupper()
+    )
+
+    exclamation_marks = text.count("!")
+
+    suspicious_keywords = [
+        "free",
+        "win",
+        "winner",
+        "won",
+        "prize",
+        "claim",
+        "urgent",
+        "offer",
+        "cash",
+        "reward",
+        "congratulations",
+        "selected",
+        "click",
+        "call now",
+        "limited",
+        "guaranteed"
+    ]
+
+    text_lower = text.lower()
+
+    detected_keywords = []
+
+    for keyword in suspicious_keywords:
+
+        if keyword in text_lower:
+
+            detected_keywords.append(
+                keyword
+            )
+
+    return {
+
+        "characters": len(text),
+
+        "words": len(words),
+
+        "numbers": len(numbers),
+
+        "capital_letters": capital_letters,
+
+        "exclamation_marks": exclamation_marks,
+
+        "contains_url": len(urls) > 0,
+
+        "url_count": len(urls),
+
+        "suspicious_keywords":
+            detected_keywords
+
+    }
 
 # ==========================================
 # Home Page
@@ -116,10 +195,9 @@ def clean_text(text):
 def home():
 
     prediction = None
-
     confidence = None
-
     message = ""
+    analysis = None
 
 
     if request.method == "POST":
@@ -133,9 +211,16 @@ def home():
         if message:
 
             # ------------------------------
-            # Clean message
+            # Analyze message
             # ------------------------------
 
+            analysis = analyze_message(
+                message
+            )
+        
+            # ------------------------------
+            # Clean message
+            # ------------------------------    
             cleaned_message = clean_text(
                 message
             )
@@ -232,7 +317,8 @@ def home():
         "index.html",
         prediction=prediction,
         confidence=confidence,
-        message=message
+        message=message,
+        analysis=analysis
     )
 
 
