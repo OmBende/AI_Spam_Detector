@@ -239,44 +239,44 @@ def home():
             # Prediction
             # ------------------------------
 
-            result = model.predict(
+            result =    model.predict(
                 message_vector
             )[0]
 
 
-            # ------------------------------
-            # SVM Decision Score
-            # ------------------------------
-
-            decision_score = model.decision_function(
-                message_vector
-            )[0]
-
-
-            # Confidence-like score
-            confidence = round(
-                (
-                    1 /
-                    (
-                        1 +
-                        abs(decision_score)
-                    )
-                ) * 100,
-                2
-            )
-
-
-            # ------------------------------
-            # Result
-            # ------------------------------
-
-            if result == 1:
-
-                prediction = "SPAM"
-
-            else:
-
-                prediction = "NOT SPAM"
+        # ------------------------------
+        # Probability Prediction
+        # ------------------------------
+        
+        probabilities = model.predict_proba(
+            message_vector
+        )[0]
+        
+        
+        # Find the probability of the predicted class
+        
+        predicted_class_index = list(
+            model.classes_
+        ).index(result)
+        
+        
+        confidence = round(
+            probabilities[predicted_class_index] * 100,
+            2
+        )
+        
+        
+        # ------------------------------
+        # Result
+        # ------------------------------
+        
+        if result == 1:
+        
+            prediction = "SPAM"
+        
+        else:
+        
+            prediction = "NOT SPAM"
 
 
             # ------------------------------

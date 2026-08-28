@@ -9,6 +9,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
+from sklearn.calibration import CalibratedClassifierCV
 
 from sklearn.metrics import (
     accuracy_score,
@@ -130,10 +131,13 @@ models = {
         max_iter=1000
     ),
 
-    "Linear SVM": LinearSVC()
+    "Linear SVM": CalibratedClassifierCV(
+        estimator=LinearSVC(),
+        cv=5,
+        method="sigmoid"
+    )
 
 }
-
 
 # ==========================================
 # 7. Train and Evaluate
