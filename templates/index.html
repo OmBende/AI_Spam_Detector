@@ -5,102 +5,103 @@
 
     <meta charset="UTF-8">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>AI Spam Detector</title>
 
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <link
-        rel="stylesheet"
-        href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
 </head>
 
 
 <body>
 
-<div class="page-container">
+    <div class="page-container">
 
-    <!-- Header -->
+        <!-- Header -->
 
-    <header class="header">
+        <header class="header">
+           <div class="history-navigation">
 
-        <div class="logo">
-            🛡️
-        </div>
+    <a href="{{ url_for('history') }}" class="back-button">
+        📋 Prediction History
+    </a>
 
-        <div>
+    <a href="{{ url_for('dashboard') }}" class="back-button">
+        📊 Dashboard
+    </a>
 
-            <h1>AI Spam Detector</h1>
+</div>
+            <div class="logo">
+                🛡️
+            </div>
 
-            <p>
-                Intelligent SMS & Message Analysis
-            </p>
+            <div>
 
-        </div>
+                <h1>AI Spam Detector</h1>
 
-    </header>
+                <p>
+                    Intelligent SMS & Message Analysis
+                </p>
 
+            </div>
 
-    <!-- Main Card -->
-
-    <main class="detector-card">
-
-        <div class="card-header">
-
-            <h2>Analyze a Message</h2>
-
-            <p>
-                Enter or paste a message below to determine
-                whether it is spam.
-            </p>
-
-        </div>
+        </header>
 
 
-        <!-- Form -->
+        <!-- Main Card -->
 
-        <form method="POST">
+        <main class="detector-card">
 
-            <label for="message">
-                Your Message
-            </label>
+            <div class="card-header">
 
-            <textarea
-                id="message"
-                name="message"
-                placeholder="Example: Congratulations! You have won a free prize..."
-                required>{{ message }}</textarea>
+                <h2>Analyze a Message</h2>
 
-
-            <div class="character-count">
-
-                <span id="charCount">0</span>
-                characters
+                <p>
+                    Enter or paste a message below to determine
+                    whether it is spam.
+                </p>
 
             </div>
 
 
-            <button
-                type="submit"
-                class="analyze-button">
+            <!-- Form -->
 
-                🔍 Analyze Message
+            <form method="POST">
 
-            </button>
+                <label for="message">
+                    Your Message
+                </label>
 
-        </form>
+                <textarea id="message" name="message"
+                    placeholder="Example: Congratulations! You have won a free prize..."
+                    required>{{ message }}</textarea>
 
 
-        <!-- Result -->
+                <div class="character-count">
 
-        {% if prediction %}
+                    <span id="charCount">0</span>
+                    characters
 
-        <div class="result-card
+                </div>
+
+
+                <button type="submit" class="analyze-button">
+
+                    🔍 Analyze Message
+
+                </button>
+
+            </form>
+
+
+            <!-- Result -->
+
+            {% if prediction %}
+
+            <div class="result-card
             {% if prediction == 'SPAM' %}
                 spam-result
             {% else %}
@@ -108,7 +109,7 @@
             {% endif %}
         ">
 
-            {% if prediction == "SPAM" %}
+                {% if prediction == "SPAM" %}
 
                 <div class="result-icon">
                     ⚠️
@@ -120,7 +121,7 @@
                     This message is likely to be spam.
                 </p>
 
-            {% else %}
+                {% else %}
 
                 <div class="result-icon">
                     ✅
@@ -132,124 +133,124 @@
                     This message appears to be legitimate.
                 </p>
 
+                {% endif %}
+
+
+                <div class="confidence-section">
+
+                    <div class="confidence-value">
+
+                        {{ confidence }}%
+
+                    </div>
+
+                    <div class="confidence-label">
+
+                        Confidence Score
+
+                    </div>
+
+                </div>
+
+
+                <div class="model-info">
+
+                    <span>
+                        🤖 Model: Linear SVM
+                    </span>
+
+                    <span>
+                        🎯 Accuracy: 98.30%
+                    </span>
+
+                </div>
+
+            </div>
+
             {% endif %}
 
+        </main>
 
-            <div class="confidence-section">
 
-                <div class="confidence-value">
+        <!-- Information -->
 
-                    {{ confidence }}%
+        <section class="info-section">
 
-                </div>
+            <div class="info-card">
 
-                <div class="confidence-label">
+                <h3>🤖 Machine Learning</h3>
 
-                    Confidence Score
+                <p>
+                    Uses a Linear Support Vector Machine trained
+                    on thousands of SMS messages.
+                </p>
 
-                </div>
+            </div>
+
+
+            <div class="info-card">
+
+                <h3>📝 NLP Processing</h3>
+
+                <p>
+                    Messages are cleaned and converted into
+                    numerical features using TF-IDF.
+                </p>
 
             </div>
 
 
-            <div class="model-info">
+            <div class="info-card">
 
-                <span>
-                    🤖 Model: Linear SVM
-                </span>
+                <h3>🎯 High Accuracy</h3>
 
-                <span>
-                    🎯 Accuracy: 98.30%
-                </span>
+                <p>
+                    Our model achieved 98.30% accuracy on the
+                    test dataset.
+                </p>
 
             </div>
 
-        </div>
-
-        {% endif %}
-
-    </main>
+        </section>
 
 
-    <!-- Information -->
+        <!-- Footer -->
 
-    <section class="info-section">
-
-        <div class="info-card">
-
-            <h3>🤖 Machine Learning</h3>
+        <footer>
 
             <p>
-                Uses a Linear Support Vector Machine trained
-                on thousands of SMS messages.
+                AI Spam Detector • Machine Learning Project
             </p>
 
-        </div>
+        </footer>
+
+    </div>
 
 
-        <div class="info-card">
+    <script>
 
-            <h3>📝 NLP Processing</h3>
+        const messageBox =
+            document.getElementById("message");
 
-            <p>
-                Messages are cleaned and converted into
-                numerical features using TF-IDF.
-            </p>
-
-        </div>
+        const charCount =
+            document.getElementById("charCount");
 
 
-        <div class="info-card">
+        messageBox.addEventListener(
+            "input",
+            function () {
 
-            <h3>🎯 High Accuracy</h3>
+                charCount.textContent =
+                    messageBox.value.length;
 
-            <p>
-                Our model achieved 98.30% accuracy on the
-                test dataset.
-            </p>
+            }
+        );
 
-        </div>
-
-    </section>
-
-
-    <!-- Footer -->
-
-    <footer>
-
-        <p>
-            AI Spam Detector • Machine Learning Project
-        </p>
-
-    </footer>
-
-</div>
-
-
-<script>
-
-const messageBox =
-    document.getElementById("message");
-
-const charCount =
-    document.getElementById("charCount");
-
-
-messageBox.addEventListener(
-    "input",
-    function () {
 
         charCount.textContent =
             messageBox.value.length;
 
-    }
-);
-
-
-charCount.textContent =
-    messageBox.value.length;
-
-</script>
+    </script>
 
 
 </body>

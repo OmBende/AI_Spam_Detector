@@ -2,21 +2,77 @@ from flask import Flask, render_template, request
 import joblib
 import re
 import string
+import sqlite3
+from datetime import datetime
 
 
 app = Flask(__name__)
 
 
 # ==========================================
-# Load trained model and vectorizer
+# Load ML Model and Vectorizer
 # ==========================================
 
-model = joblib.load("model/spam_model.pkl")
-vectorizer = joblib.load("model/tfidf_vectorizer.pkl")
+model = joblib.load(
+    "model/spam_model.pkl"
+)
+
+vectorizer = joblib.load(
+    "model/tfidf_vectorizer.pkl"
+)
 
 
 # ==========================================
-# Text Cleaning Function
+# Database Configuration
+# ==========================================
+
+DATABASE = "spam_detector.db"
+
+
+def get_db_connection():
+
+    connection = sqlite3.connect(
+        DATABASE
+    )
+
+    connection.row_factory = sqlite3.Row
+
+    return connection
+
+
+# ==========================================
+# Initialize Database
+# ==========================================
+
+def initialize_database():
+
+    connection = get_db_connection()
+
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS predictions (
+
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            message TEXT NOT NULL,
+
+            prediction TEXT NOT NULL,
+
+            confidence REAL NOT NULL,
+
+            created_at TEXT NOT NULL
+
+        )
+        """
+    )
+
+    connection.commit()
+
+    connection.close()
+
+
+# ==========================================
+# Text Cleaning
 # ==========================================
 
 def clean_text(text):
@@ -32,7 +88,11 @@ def clean_text(text):
 
     # Remove punctuation
     text = text.translate(
-        str.maketrans("", "", string.punctuation)
+        str.maketrans(
+            "",
+            "",
+            string.punctuation
+        )
     )
 
     # Remove extra spaces
@@ -46,15 +106,21 @@ def clean_text(text):
 
 
 # ==========================================
-# Home Route
+# Home Page
 # ==========================================
 
-@app.route("/", methods=["GET", "POST"])
+@app.route(
+    "/",
+    methods=["GET", "POST"]
+)
 def home():
 
     prediction = None
+
     confidence = None
+
     message = ""
+
 
     if request.method == "POST":
 
@@ -62,6 +128,7 @@ def home():
             "message",
             ""
         ).strip()
+
 
         if message:
 
@@ -75,7 +142,7 @@ def home():
 
 
             # ------------------------------
-            # TF-IDF transformation
+            # TF-IDF
             # ------------------------------
 
             message_vector = vectorizer.transform(
@@ -93,7 +160,7 @@ def home():
 
 
             # ------------------------------
-            # SVM decision score
+            # SVM Decision Score
             # ------------------------------
 
             decision_score = model.decision_function(
@@ -101,16 +168,21 @@ def home():
             )[0]
 
 
-            # Convert decision score into
-            # a confidence-like percentage
+            # Confidence-like score
             confidence = round(
-                (1 / (1 + abs(decision_score))) * 100,
+                (
+                    1 /
+                    (
+                        1 +
+                        abs(decision_score)
+                    )
+                ) * 100,
                 2
             )
 
 
             # ------------------------------
-            # Determine prediction
+            # Result
             # ------------------------------
 
             if result == 1:
@@ -122,12 +194,182 @@ def home():
                 prediction = "NOT SPAM"
 
 
+            # ------------------------------
+            # Save Prediction
+            # ------------------------------
+
+            connection = get_db_connection()
+
+            connection.execute(
+                """
+                INSERT INTO predictions
+                (
+                    message,
+                    prediction,
+                    confidence,
+                    created_at
+                )
+
+                VALUES (?, ?, ?, ?)
+                """,
+
+                (
+                    message,
+                    prediction,
+                    confidence,
+                    datetime.now().strftime(
+                        "%Y-%m-%d %H:%M:%S"
+                    )
+                )
+            )
+
+            connection.commit()
+
+            connection.close()
+
+
     return render_template(
         "index.html",
         prediction=prediction,
         confidence=confidence,
         message=message
     )
+
+
+# ==========================================
+# Prediction History
+# ==========================================
+
+@app.route("/history")
+def history():
+
+    connection = get_db_connection()
+
+    predictions = connection.execute(
+        """
+        SELECT *
+        FROM predictions
+        ORDER BY id DESC
+        """
+    ).fetchall()
+
+    connection.close()
+
+
+    return render_template(
+        "history.html",
+        predictions=predictions
+    )
+
+# ==========================================
+# Dashboard
+# ==========================================
+
+@app.route("/dashboard")
+def dashboard():
+
+    connection = get_db_connection()
+
+    # Total predictions
+    total = connection.execute(
+        """
+        SELECT COUNT(*) AS count
+        FROM predictions
+        """
+    ).fetchone()["count"]
+
+
+    # Total spam
+    spam_count = connection.execute(
+        """
+        SELECT COUNT(*) AS count
+        FROM predictions
+        WHERE prediction = 'SPAM'
+        """
+    ).fetchone()["count"]
+
+
+    # Total ham
+    ham_count = connection.execute(
+        """
+        SELECT COUNT(*) AS count
+        FROM predictions
+        WHERE prediction = 'NOT SPAM'
+        """
+    ).fetchone()["count"]
+
+
+    # Average confidence
+    average_confidence = connection.execute(
+        """
+        SELECT AVG(confidence) AS average
+        FROM predictions
+        """
+    ).fetchone()["average"]
+
+
+    # Recent predictions
+    recent_predictions = connection.execute(
+        """
+        SELECT *
+        FROM predictions
+        ORDER BY id DESC
+        LIMIT 5
+        """
+    ).fetchall()
+
+
+    connection.close()
+
+
+    # Calculate spam rate
+    if total > 0:
+
+        spam_rate = round(
+            (spam_count / total) * 100,
+            2
+        )
+
+    else:
+
+        spam_rate = 0
+
+
+    # Average confidence
+    if average_confidence:
+
+        average_confidence = round(
+            average_confidence,
+            2
+        )
+
+    else:
+
+        average_confidence = 0
+
+
+    return render_template(
+        "dashboard.html",
+
+        total=total,
+
+        spam_count=spam_count,
+
+        ham_count=ham_count,
+
+        spam_rate=spam_rate,
+
+        average_confidence=average_confidence,
+
+        recent_predictions=recent_predictions
+    )
+
+
+# ==========================================
+# Initialize Database
+# ==========================================
+
+initialize_database()
 
 
 # ==========================================

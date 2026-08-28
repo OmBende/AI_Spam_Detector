@@ -25,3 +25,8 @@ model/*.pkl
 # OS files
 .DS_Store
 Thumbs.db
+
+# SQLite database
+*.db
+*.sqlite
+*.sqlite3
