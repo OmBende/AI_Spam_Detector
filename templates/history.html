@@ -50,11 +50,19 @@
 
     <!-- Back Button -->
 
-    <div class="history-navigation">
+   <div class="history-navigation">
 
-        <a href="/" class="back-button">
-            ← Analyze New Message
-        </a>
+    <a href="{{ url_for('home') }}" class="back-button">
+        ← Analyze Message
+    </a>
+
+    <a href="{{ url_for('dashboard') }}" class="back-button">
+        📊 Dashboard
+    </a>
+
+    <a href="{{ url_for('logout') }}" class="logout-button">
+        🚪 Logout
+    </a>
 
     </div>
 

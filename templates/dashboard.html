@@ -3,6 +3,7 @@
 <html lang="en">
 
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <meta charset="UTF-8">
 
@@ -51,17 +52,21 @@
 
     <!-- Navigation -->
 
-    <div class="dashboard-navigation">
+   <div class="dashboard-navigation">
 
-        <a href="/" class="back-button">
-            ← Analyze Message
-        </a>
+    <a href="{{ url_for('home') }}" class="back-button">
+        ← Analyze Message
+    </a>
 
-        <a href="/history" class="back-button">
-            📋 History
-        </a>
+    <a href="{{ url_for('history') }}" class="back-button">
+        📋 History
+    </a>
 
-    </div>
+    <a href="{{ url_for('logout') }}" class="logout-button">
+        🚪 Logout
+    </a>
+
+</div>
 
 
     <!-- Statistics -->
@@ -164,6 +169,26 @@
 
     </section>
 
+    <!-- Prediction Distribution -->
+
+<section class="dashboard-card">
+
+    <h2>
+        📊 Prediction Distribution
+    </h2>
+
+    <p>
+        Distribution of messages classified as spam
+        and not spam.
+    </p>
+
+    <div class="chart-container">
+
+        <canvas id="predictionChart"></canvas>
+
+    </div>
+
+</section>
 
     <!-- Recent Predictions -->
 
@@ -339,6 +364,43 @@
 
 
 </div>
+
+<script>
+    const spamCount = Number("{{ spam_count }}");
+    const hamCount = Number("{{ ham_count }}");
+
+    const chartCanvas = document.getElementById("predictionChart");
+
+    new Chart(chartCanvas, {
+        type: "doughnut",
+
+        data: {
+            labels: [
+                "Spam",
+                "Not Spam"
+            ],
+
+            datasets: [{
+                data: [
+                    spamCount,
+                    hamCount
+                ],
+
+                borderWidth: 2
+            }]
+        },
+
+        options: {
+            responsive: true,
+
+            plugins: {
+                legend: {
+                    position: "bottom"
+                }
+            }
+        }
+    });
+</script>
 
 </body>
 

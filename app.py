@@ -1,13 +1,15 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 import joblib
 import re
 import string
 import sqlite3
 from datetime import datetime
+from functools import wraps
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 app = Flask(__name__)
-
+app.secret_key = "ai-spam-detector-secret-key"
 
 # ==========================================
 # Load ML Model and Vectorizer
@@ -38,7 +40,27 @@ def get_db_connection():
     connection.row_factory = sqlite3.Row
 
     return connection
+# ==========================================
+# Login Required
+# ==========================================
 
+def login_required(function):
+
+    @wraps(function)
+    def wrapper(*args, **kwargs):
+
+        if "user_id" not in session:
+
+            return redirect(
+                url_for("login")
+            )
+
+        return function(
+            *args,
+            **kwargs
+        )
+
+    return wrapper
 
 # ==========================================
 # Initialize Database
@@ -61,6 +83,22 @@ def initialize_database():
             confidence REAL NOT NULL,
 
             created_at TEXT NOT NULL
+
+        )
+        """
+    )
+
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS users (
+
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            username TEXT NOT NULL UNIQUE,
+
+            email TEXT NOT NULL UNIQUE,
+
+            password TEXT NOT NULL
 
         )
         """
@@ -185,6 +223,211 @@ def analyze_message(text):
     }
 
 # ==========================================
+# Signup
+# ==========================================
+
+@app.route(
+    "/signup",
+    methods=["GET", "POST"]
+)
+def signup():
+
+    if request.method == "POST":
+
+        username = request.form.get(
+            "username",
+            ""
+        ).strip()
+
+        email = request.form.get(
+            "email",
+            ""
+        ).strip()
+
+        password = request.form.get(
+            "password",
+            ""
+        )
+
+
+        if not username or not email or not password:
+
+            flash(
+                "All fields are required."
+            )
+
+            return redirect(
+                url_for("signup")
+            )
+
+
+        connection = get_db_connection()
+
+
+        existing_user = connection.execute(
+            """
+            SELECT id
+            FROM users
+            WHERE username = ? OR email = ?
+            """,
+
+            (
+                username,
+                email
+            )
+        ).fetchone()
+
+
+        if existing_user:
+
+            connection.close()
+
+            flash(
+                "Username or email already exists."
+            )
+
+            return redirect(
+                url_for("signup")
+            )
+
+
+        hashed_password = generate_password_hash(
+            password
+        )
+
+
+        connection.execute(
+            """
+            INSERT INTO users
+            (
+                username,
+                email,
+                password
+            )
+
+            VALUES (?, ?, ?)
+            """,
+
+            (
+                username,
+                email,
+                hashed_password
+            )
+        )
+
+
+        connection.commit()
+
+        connection.close()
+
+
+        flash(
+            "Account created successfully. Please login."
+        )
+
+        return redirect(
+            url_for("login")
+        )
+
+
+    return render_template(
+        "signup.html"
+    )
+
+# ==========================================
+# Login
+# ==========================================
+
+# ==========================================
+# Login
+# ==========================================
+
+@app.route(
+    "/login",
+    methods=["GET", "POST"]
+)
+def login():
+
+    if request.method == "POST":
+
+        email = request.form.get(
+            "email",
+            ""
+        ).strip()
+
+        password = request.form.get(
+            "password",
+            ""
+        )
+
+        connection = get_db_connection()
+
+        user = connection.execute(
+            """
+            SELECT *
+            FROM users
+            WHERE email = ?
+            """,
+            (email,)
+        ).fetchone()
+
+        connection.close()
+
+        # ----------------------------------
+        # Check Login Credentials
+        # ----------------------------------
+
+        if user and check_password_hash(
+            user["password"],
+            password
+        ):
+
+            session["user_id"] = user["id"]
+
+            session["username"] = user["username"]
+
+            flash(
+                "Login successful!",
+                "success"
+            )
+
+            return redirect(
+                url_for("home")
+            )
+
+        else:
+
+            flash(
+                "Invalid email or password.",
+                "error"
+            )
+
+            return redirect(
+                url_for("login")
+            )
+
+    return render_template(
+        "login.html"
+    )
+# ==========================================
+# Logout
+# ==========================================
+
+@app.route("/logout")
+def logout():
+
+    session.clear()
+
+    flash(
+        "Logout successful!",
+        "logout"
+    )
+
+    return redirect(
+        url_for("login")
+    )
+
+# ==========================================
 # Home Page
 # ==========================================
 
@@ -192,6 +435,7 @@ def analyze_message(text):
     "/",
     methods=["GET", "POST"]
 )
+@login_required
 def home():
 
     prediction = None
@@ -217,10 +461,12 @@ def home():
             analysis = analyze_message(
                 message
             )
-        
+
+
             # ------------------------------
             # Clean message
-            # ------------------------------    
+            # ------------------------------
+
             cleaned_message = clean_text(
                 message
             )
@@ -239,44 +485,44 @@ def home():
             # Prediction
             # ------------------------------
 
-            result =    model.predict(
+            result = model.predict(
                 message_vector
             )[0]
 
 
-        # ------------------------------
-        # Probability Prediction
-        # ------------------------------
-        
-        probabilities = model.predict_proba(
-            message_vector
-        )[0]
-        
-        
-        # Find the probability of the predicted class
-        
-        predicted_class_index = list(
-            model.classes_
-        ).index(result)
-        
-        
-        confidence = round(
-            probabilities[predicted_class_index] * 100,
-            2
-        )
-        
-        
-        # ------------------------------
-        # Result
-        # ------------------------------
-        
-        if result == 1:
-        
-            prediction = "SPAM"
-        
-        else:
-        
-            prediction = "NOT SPAM"
+            # ------------------------------
+            # Probability Prediction
+            # ------------------------------
+
+            probabilities = model.predict_proba(
+                message_vector
+            )[0]
+
+
+            # Find probability of predicted class
+
+            predicted_class_index = list(
+                model.classes_
+            ).index(result)
+
+
+            confidence = round(
+                probabilities[predicted_class_index] * 100,
+                2
+            )
+
+
+            # ------------------------------
+            # Result
+            # ------------------------------
+
+            if result == 1:
+
+                prediction = "SPAM"
+
+            else:
+
+                prediction = "NOT SPAM"
 
 
             # ------------------------------
@@ -292,21 +538,23 @@ def home():
                     message,
                     prediction,
                     confidence,
-                    created_at
+                    created_at,
+                    user_id
                 )
-
-                VALUES (?, ?, ?, ?)
+        
+                VALUES (?, ?, ?, ?, ?)
                 """,
-
+        
                 (
                     message,
                     prediction,
                     confidence,
                     datetime.now().strftime(
                         "%Y-%m-%d %H:%M:%S"
-                    )
+                    ),
+                    session["user_id"]
                 )
-            )
+)
 
             connection.commit()
 
@@ -321,12 +569,12 @@ def home():
         analysis=analysis
     )
 
-
 # ==========================================
 # Prediction History
 # ==========================================
 
 @app.route("/history")
+@login_required
 def history():
 
     connection = get_db_connection()
@@ -335,8 +583,11 @@ def history():
         """
         SELECT *
         FROM predictions
+        WHERE user_id = ?
         ORDER BY id DESC
-        """
+        """,
+
+        (session["user_id"],)
     ).fetchall()
 
     connection.close()
@@ -352,6 +603,7 @@ def history():
 # ==========================================
 
 @app.route("/dashboard")
+@login_required
 def dashboard():
 
     connection = get_db_connection()
@@ -361,7 +613,9 @@ def dashboard():
         """
         SELECT COUNT(*) AS count
         FROM predictions
-        """
+        WHERE user_id = ?
+        """,
+        (session["user_id"],)
     ).fetchone()["count"]
 
 
@@ -370,8 +624,9 @@ def dashboard():
         """
         SELECT COUNT(*) AS count
         FROM predictions
-        WHERE prediction = 'SPAM'
-        """
+        WHERE prediction = 'SPAM' AND user_id = ?
+        """,
+        (session["user_id"],)
     ).fetchone()["count"]
 
 
@@ -381,7 +636,9 @@ def dashboard():
         SELECT COUNT(*) AS count
         FROM predictions
         WHERE prediction = 'NOT SPAM'
-        """
+        AND user_id = ?
+        """,
+        (session["user_id"],)
     ).fetchone()["count"]
 
 
@@ -390,7 +647,9 @@ def dashboard():
         """
         SELECT AVG(confidence) AS average
         FROM predictions
-        """
+        WHERE user_id = ?
+        """,
+        (session["user_id"],)
     ).fetchone()["average"]
 
 
@@ -399,9 +658,11 @@ def dashboard():
         """
         SELECT *
         FROM predictions
+        WHERE user_id = ?
         ORDER BY id DESC
         LIMIT 5
-        """
+        """,
+        (session["user_id"],)
     ).fetchall()
 
 

@@ -930,3 +930,255 @@ td {
     }
 
 }
+
+/* ==========================================
+   Dashboard Chart
+   ========================================== */
+
+.chart-container {
+
+    max-width: 320px;
+
+    height: 320px;
+
+    margin: 20px auto;
+
+    padding: 5px;
+
+}
+/* ==========================================
+   Authentication
+   ========================================== */
+
+.auth-card {
+
+    width: 100%;
+
+    max-width: 450px;
+
+    margin: 40px auto;
+
+    padding: 40px;
+
+    background: white;
+
+    border-radius: 20px;
+
+    text-align: center;
+
+    box-shadow:
+        0 15px 40px
+        rgba(15, 23, 42, 0.10);
+
+}
+
+
+.auth-logo {
+
+    font-size: 55px;
+
+    margin-bottom: 10px;
+
+}
+
+
+.auth-card h1 {
+
+    margin: 0;
+
+    font-size: 30px;
+
+}
+
+
+.auth-subtitle {
+
+    color: #64748b;
+
+    margin: 8px 0 25px;
+
+}
+
+
+.auth-field {
+
+    text-align: left;
+
+    margin-bottom: 18px;
+
+}
+
+
+.auth-field label {
+
+    margin-bottom: 8px;
+
+}
+
+
+.auth-field input {
+
+    width: 100%;
+
+    padding: 13px 15px;
+
+    border: 2px solid #e2e8f0;
+
+    border-radius: 10px;
+
+    font-size: 15px;
+
+    outline: none;
+
+}
+
+
+.auth-field input:focus {
+
+    border-color: #6366f1;
+
+    box-shadow:
+        0 0 0 3px
+        rgba(99, 102, 241, 0.12);
+
+}
+
+
+.flash-message {
+
+    padding: 12px;
+
+    margin-bottom: 20px;
+
+    background: #fff1f2;
+
+    border: 1px solid #fecdd3;
+
+    color: #05da57;
+
+    border-radius: 10px;
+
+    font-size: 14px;
+
+}
+
+
+.auth-switch {
+
+    margin-top: 22px;
+
+    color: #64748b;
+
+    font-size: 14px;
+
+}
+
+
+.auth-switch a {
+
+    color: #4f46e5;
+
+    font-weight: 600;
+
+    text-decoration: none;
+
+}
+
+
+.auth-switch a:hover {
+
+    text-decoration: underline;
+
+}
+
+/* ==========================================
+   Logout Button
+   ========================================== */
+
+.logout-button {
+
+    display: inline-block;
+
+    padding: 10px 16px;
+
+    background: #fff1f2;
+
+    color: #be123c;
+
+    text-decoration: none;
+
+    border-radius: 8px;
+
+    font-weight: 600;
+
+    border: 1px solid #fecdd3;
+
+    transition: 0.2s;
+
+}
+
+
+.logout-button:hover {
+
+    background: #ffe4e6;
+
+    color: #9f1239;
+
+}
+
+/* ==========================================
+   Flash Messages
+   ========================================== */
+
+.flash-message {
+
+    margin-bottom: 20px;
+
+    padding: 12px 15px;
+
+    border-radius: 10px;
+
+    text-align: center;
+
+    font-weight: 600;
+
+}
+
+
+/* Login Successful */
+
+.flash-message.success {
+
+    background: #dcfce7;
+
+    color: #15803d;
+
+    border: 1px solid #86efac;
+
+}
+
+
+/* Logout Successful */
+
+.flash-message.logout {
+
+    background: #fee2e2;
+
+    color: #b91c1c;
+
+    border: 1px solid #fca5a5;
+
+}
+
+
+/* Invalid Login / Error */
+
+.flash-message.error {
+
+    background: #fee2e2;
+
+    color: #b91c1c;
+
+    border: 1px solid #fca5a5;
+
+}

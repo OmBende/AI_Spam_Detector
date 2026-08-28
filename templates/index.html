@@ -54,27 +54,21 @@
          Navigation
          ========================================== -->
 
-    <div class="history-navigation">
+   <div class="history-navigation">
 
-        <a
-            href="{{ url_for('history') }}"
-            class="back-button">
+    <a href="{{ url_for('history') }}" class="back-button">
+        📋 Prediction History
+    </a>
 
-            📋 Prediction History
+    <a href="{{ url_for('dashboard') }}" class="back-button">
+        📊 Dashboard
+    </a>
 
-        </a>
+    <a href="{{ url_for('logout') }}" class="logout-button">
+        🚪 Logout
+    </a>
 
-
-        <a
-            href="{{ url_for('dashboard') }}"
-            class="back-button">
-
-            📊 Dashboard
-
-        </a>
-
-    </div>
-
+</div>
 
     <!-- ==========================================
          Main Detector
