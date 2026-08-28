@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
 
     <meta name="viewport"
@@ -16,46 +17,104 @@
     <link
         rel="stylesheet"
         href="{{ url_for('static', filename='style.css') }}">
+
 </head>
+
 
 <body>
 
-<div class="container">
+<div class="page-container">
 
-    <div class="detector-card">
+    <!-- Header -->
 
-        <h1>AI Spam Detector</h1>
+    <header class="header">
 
-        <p class="subtitle">
-            Detect whether a message is Spam or Not Spam
-            using Machine Learning
-        </p>
+        <div class="logo">
+            🛡️
+        </div>
+
+        <div>
+
+            <h1>AI Spam Detector</h1>
+
+            <p>
+                Intelligent SMS & Message Analysis
+            </p>
+
+        </div>
+
+    </header>
+
+
+    <!-- Main Card -->
+
+    <main class="detector-card">
+
+        <div class="card-header">
+
+            <h2>Analyze a Message</h2>
+
+            <p>
+                Enter or paste a message below to determine
+                whether it is spam.
+            </p>
+
+        </div>
+
+
+        <!-- Form -->
 
         <form method="POST">
 
             <label for="message">
-                Enter your message
+                Your Message
             </label>
 
             <textarea
                 id="message"
                 name="message"
-                placeholder="Type or paste your message here..."
+                placeholder="Example: Congratulations! You have won a free prize..."
                 required>{{ message }}</textarea>
 
-            <button type="submit">
-                Detect Spam
+
+            <div class="character-count">
+
+                <span id="charCount">0</span>
+                characters
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="analyze-button">
+
+                🔍 Analyze Message
+
             </button>
 
         </form>
 
+
+        <!-- Result -->
+
         {% if prediction %}
 
-        <div class="result">
+        <div class="result-card
+            {% if prediction == 'SPAM' %}
+                spam-result
+            {% else %}
+                ham-result
+            {% endif %}
+        ">
 
             {% if prediction == "SPAM" %}
 
-                <h2>⚠️ SPAM MESSAGE</h2>
+                <div class="result-icon">
+                    ⚠️
+                </div>
+
+                <h2>SPAM DETECTED</h2>
 
                 <p>
                     This message is likely to be spam.
@@ -63,7 +122,11 @@
 
             {% else %}
 
-                <h2>✅ NOT SPAM</h2>
+                <div class="result-icon">
+                    ✅
+                </div>
+
+                <h2>NOT SPAM</h2>
 
                 <p>
                     This message appears to be legitimate.
@@ -71,10 +134,33 @@
 
             {% endif %}
 
-            <div class="confidence">
 
-                Confidence:
-                <strong>{{ confidence }}%</strong>
+            <div class="confidence-section">
+
+                <div class="confidence-value">
+
+                    {{ confidence }}%
+
+                </div>
+
+                <div class="confidence-label">
+
+                    Confidence Score
+
+                </div>
+
+            </div>
+
+
+            <div class="model-info">
+
+                <span>
+                    🤖 Model: Linear SVM
+                </span>
+
+                <span>
+                    🎯 Accuracy: 98.30%
+                </span>
 
             </div>
 
@@ -82,9 +168,90 @@
 
         {% endif %}
 
-    </div>
+    </main>
+
+
+    <!-- Information -->
+
+    <section class="info-section">
+
+        <div class="info-card">
+
+            <h3>🤖 Machine Learning</h3>
+
+            <p>
+                Uses a Linear Support Vector Machine trained
+                on thousands of SMS messages.
+            </p>
+
+        </div>
+
+
+        <div class="info-card">
+
+            <h3>📝 NLP Processing</h3>
+
+            <p>
+                Messages are cleaned and converted into
+                numerical features using TF-IDF.
+            </p>
+
+        </div>
+
+
+        <div class="info-card">
+
+            <h3>🎯 High Accuracy</h3>
+
+            <p>
+                Our model achieved 98.30% accuracy on the
+                test dataset.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- Footer -->
+
+    <footer>
+
+        <p>
+            AI Spam Detector • Machine Learning Project
+        </p>
+
+    </footer>
 
 </div>
 
+
+<script>
+
+const messageBox =
+    document.getElementById("message");
+
+const charCount =
+    document.getElementById("charCount");
+
+
+messageBox.addEventListener(
+    "input",
+    function () {
+
+        charCount.textContent =
+            messageBox.value.length;
+
+    }
+);
+
+
+charCount.textContent =
+    messageBox.value.length;
+
+</script>
+
+
 </body>
+
 </html>
