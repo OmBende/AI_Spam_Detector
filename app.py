@@ -7,23 +7,28 @@ import string
 app = Flask(__name__)
 
 
-# -----------------------------------------
+# ==========================================
 # Load trained model and vectorizer
-# -----------------------------------------
+# ==========================================
 
 model = joblib.load("model/spam_model.pkl")
 vectorizer = joblib.load("model/tfidf_vectorizer.pkl")
 
 
-# -----------------------------------------
-# Text cleaning function
-# -----------------------------------------
+# ==========================================
+# Text Cleaning Function
+# ==========================================
 
 def clean_text(text):
-    text = text.lower()
+
+    text = str(text).lower()
 
     # Remove URLs
-    text = re.sub(r"http\S+|www\S+|https\S+", "", text)
+    text = re.sub(
+        r"http\S+|www\S+|https\S+",
+        "",
+        text
+    )
 
     # Remove punctuation
     text = text.translate(
@@ -31,14 +36,18 @@ def clean_text(text):
     )
 
     # Remove extra spaces
-    text = re.sub(r"\s+", " ", text).strip()
+    text = re.sub(
+        r"\s+",
+        " ",
+        text
+    ).strip()
 
     return text
 
 
-# -----------------------------------------
-# Home page
-# -----------------------------------------
+# ==========================================
+# Home Route
+# ==========================================
 
 @app.route("/", methods=["GET", "POST"])
 def home():
@@ -49,35 +58,69 @@ def home():
 
     if request.method == "POST":
 
-        message = request.form.get("message", "").strip()
+        message = request.form.get(
+            "message",
+            ""
+        ).strip()
 
         if message:
 
+            # ------------------------------
             # Clean message
-            cleaned_message = clean_text(message)
+            # ------------------------------
 
-            # Convert text into TF-IDF
+            cleaned_message = clean_text(
+                message
+            )
+
+
+            # ------------------------------
+            # TF-IDF transformation
+            # ------------------------------
+
             message_vector = vectorizer.transform(
                 [cleaned_message]
             )
 
-            # Predict
-            result = model.predict(message_vector)[0]
 
-            # Get probabilities
-            probabilities = model.predict_proba(
+            # ------------------------------
+            # Prediction
+            # ------------------------------
+
+            result = model.predict(
                 message_vector
             )[0]
 
+
+            # ------------------------------
+            # SVM decision score
+            # ------------------------------
+
+            decision_score = model.decision_function(
+                message_vector
+            )[0]
+
+
+            # Convert decision score into
+            # a confidence-like percentage
             confidence = round(
-                max(probabilities) * 100,
+                (1 / (1 + abs(decision_score))) * 100,
                 2
             )
 
+
+            # ------------------------------
+            # Determine prediction
+            # ------------------------------
+
             if result == 1:
+
                 prediction = "SPAM"
+
             else:
+
                 prediction = "NOT SPAM"
+
 
     return render_template(
         "index.html",
@@ -87,9 +130,12 @@ def home():
     )
 
 
-# -----------------------------------------
-# Run Flask application
-# -----------------------------------------
+# ==========================================
+# Run Application
+# ==========================================
 
 if __name__ == "__main__":
-    app.run(debug=True)
+
+    app.run(
+        debug=True
+    )
